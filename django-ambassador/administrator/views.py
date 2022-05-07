@@ -2,11 +2,11 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import generics, mixins
-from core.models import User, Product
+from core.models import User, Product, Link, Order
 from common.serializers import UserSerializer
 from rest_framework.permissions import IsAuthenticated
 from common.authentication import JWTAuthentication
-from .serializers import ProductSerializer
+from .serializers import OrderSerializer, ProductSerializer, LinkSerializer
 
 # Create your views here.
 
@@ -40,3 +40,23 @@ class ProductGenericAPIView(generics.GenericAPIView, mixins.RetrieveModelMixin, 
     
     def delete(self, request, pk=None):
         return self.destroy(request, pk)
+
+
+class LinkAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None):
+        links = Link.objects.filter(user_id=pk)
+        serializer = LinkSerializer(links, many=True)
+        return Response(serializer.data)
+
+
+class OrderAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        orders = Order.objects.filter(completed=True)
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
